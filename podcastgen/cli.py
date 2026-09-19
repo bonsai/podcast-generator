@@ -2,12 +2,13 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 from podcastgen.radio import generate_podcast
 from podcastgen.site import build_site
 
-DESIGN_HOME = Path.home() / "repo" / "design"
+DESIGN_HOME = Path(os.environ.get("SG_DESIGN_HOME", Path.home() / "repo" / "show-builder"))
 THEMES_DIR = DESIGN_HOME / "themes"
 
 

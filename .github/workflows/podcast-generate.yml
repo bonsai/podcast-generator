@@ -53,16 +53,19 @@ jobs:
         env:
           SAKURA_API_KEY: ${{ secrets.SAKURA_API_KEY }}
           VOICEVOX_MODEL: ${{ vars.VOICEVOX_MODEL }}
+          SG_DESIGN_HOME: ${{ github.workspace }}/design
         run: |
           cd podcast-generator
-          python -m podcastgen.cli generate \
+          PYTHONPATH=. python -m podcastgen.cli generate \
             --theme "${{ inputs.theme }}" \
             ${BGM:+"--bgm"} ${BGM:+"../design/$BGM"}
 
       - name: Build site
+        env:
+          SG_DESIGN_HOME: ${{ github.workspace }}/design
         run: |
           cd podcast-generator
-          python -m podcastgen.cli site \
+          PYTHONPATH=. python -m podcastgen.cli site \
             --theme "${{ inputs.theme }}" \
             --out ../site
 
