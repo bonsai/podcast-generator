@@ -62,22 +62,53 @@ def split_text(text: str, max_length: int = TTS_MAX_CHARS) -> list[str]:
 
 # ---------- TTS (Sakura/VOICEVOX) ----------
 
-def synthesize(text: str) -> bytes:
+def _opt_float(key: str, default: float) -> float:
+    try:
+        v = os.environ.get(key)
+        return float(v) if v else default
+    except ValueError:
+        return default
+
+
+def _opt_int(key: str, default: int) -> int:
+    try:
+        v = os.environ.get(key)
+        return int(v) if v else default
+    except ValueError:
+        return default
+
+
+def synthesize(text: str, **kwargs) -> bytes:
     api_key = os.environ.get("SAKURA_API_KEY")
     if not api_key:
         raise RuntimeError("SAKURA_API_KEY is not set")
-    payload = json.dumps(
-        {
-            "model": TTS_MODEL,
-            "input": text,
-            "voice": TTS_VOICE,
-            "response_format": "wav",
-        },
-        ensure_ascii=False,
-    ).encode("utf-8")
+    payload: dict = {
+        "model": _env("VOICEVOX_MODEL", "zundamon"),
+        "input": text,
+        "voice": _env("VOICEVOX_VOICE", "normal"),
+        "response_format": "wav",
+    }
+    # オプション: 引数 > env > デフォルト
+    opt_map = {
+        "speed": (("speed",), _opt_float, 1.0),
+        "pitch": (("pitch",), _opt_float, 0.0),
+        "intonation_scale": (("intonation_scale", "intonationScale"), _opt_float, 1.0),
+        "volume_scale": (("volume_scale", "volumeScale"), _opt_float, 1.0),
+        "pause_sentence": (("pause_sentence", "pauseSentence", "pause_middle", "pause_long"), _opt_int, 0),
+    }
+    for key, (names, getter, default) in opt_map.items():
+        val = kwargs.get(key)
+        if val is not None:
+            payload[names[0]] = val
+            continue
+        for name in names:
+            if os.environ.get(name) is not None:
+                payload[names[0]] = getter(name, default)
+                break
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(
         TTS_URL,
-        data=payload,
+        data=data,
         headers={
             "Accept": "audio/wav",
             "Content-Type": "application/json; charset=utf-8",
@@ -137,8 +168,13 @@ def mix_audio(narration: Path, output: Path,
 # ---------- generate ----------
 
 def generate_podcast(theme: dict, theme_dir: Path,
-                     bgm: Path | None = None, se: Path | None = None) -> Path:
-    """theme json (design repo) から radio.mp3 を生成して返す。"""
+                     bgm: Path | None = None, se: Path | None = None,
+                     tts: dict | None = None) -> Path:
+    """theme json (design repo) から radio.mp3 を生成して返す。
+
+    tts オプション: speed / pitch / intonation_scale / volume_scale / pause_sentence
+    """
+    tts = tts or {}
     script = theme_dir / theme.get("script", "data/programs/test/talk-script-60s.md")
     if not script.exists():
         raise FileNotFoundError(f"talk script not found: {script}")
@@ -148,7 +184,7 @@ def generate_podcast(theme: dict, theme_dir: Path,
 
     text = script_to_text(script)
     chunks = split_text(text)
-    wavs = [synthesize(c) for c in chunks]
+    wavs = [synthesize(c, **tts) for c in chunks]
 
     with tempfile.TemporaryDirectory() as tmp:
         merged = Path(tmp) / "merged.wav"

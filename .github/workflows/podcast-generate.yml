@@ -15,6 +15,26 @@ on:
         description: "BGM wav の設計repo内パス (省略時はBGMなし)"
         required: false
         default: ""
+      speed:
+        description: "話速 (例: 1.2)"
+        required: false
+        default: ""
+      pitch:
+        description: "ピッチ (例: 0.1)"
+        required: false
+        default: ""
+      intonation_scale:
+        description: "抑揚 (例: 1.1)"
+        required: false
+        default: ""
+      volume_scale:
+        description: "音量 (例: 1.2)"
+        required: false
+        default: ""
+      pause_sentence:
+        description: "文間ポーズ ms (例: 300)"
+        required: false
+        default: ""
   schedule:
     - cron: "0 22 * * 6"  # 毎週土曜 22:00 UTC
 
@@ -53,11 +73,21 @@ jobs:
         env:
           SAKURA_API_KEY: ${{ secrets.SAKURA_API_KEY }}
           SG_DESIGN_HOME: ${{ github.workspace }}/design
+          SPEED: ${{ inputs.speed }}
+          PITCH: ${{ inputs.pitch }}
+          INTON: ${{ inputs.intonation_scale }}
+          VOL: ${{ inputs.volume_scale }}
+          PAUSE: ${{ inputs.pause_sentence }}
         run: |
           cd podcast-generator
           PYTHONPATH=. python -m podcastgen.cli generate \
             --theme "${{ inputs.theme }}" \
-            ${BGM:+"--bgm"} ${BGM:+"../design/$BGM"}
+            ${BGM:+"--bgm"} ${BGM:+"../design/$BGM"} \
+            ${SPEED:+--speed "$SPEED"} \
+            ${PITCH:+--pitch "$PITCH"} \
+            ${INTON:+--intonation-scale "$INTON"} \
+            ${VOL:+--volume-scale "$VOL"} \
+            ${PAUSE:+--pause-sentence "$PAUSE"}
 
       - name: Build site
         env:
