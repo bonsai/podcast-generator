@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "podcast-generator"
+version = "0.1.0"
+description = "台本 → radio.mp3 + 視聴ページ(HTML) 生成（video なし版）"
+requires-python = ">=3.10"
+
+[project.scripts]
+pg = "podcastgen.cli:main"
+
+[tool.setuptools]
+packages = ["podcastgen"]
