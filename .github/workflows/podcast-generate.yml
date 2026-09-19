@@ -102,7 +102,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: radio
-          path: podcast-generator/data/audio/
+          path: design/data/audio/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
