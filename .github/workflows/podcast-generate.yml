@@ -52,7 +52,6 @@ jobs:
       - name: Generate radio.mp3
         env:
           SAKURA_API_KEY: ${{ secrets.SAKURA_API_KEY }}
-          VOICEVOX_MODEL: ${{ vars.VOICEVOX_MODEL }}
           SG_DESIGN_HOME: ${{ github.workspace }}/design
         run: |
           cd podcast-generator

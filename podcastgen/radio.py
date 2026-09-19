@@ -17,12 +17,15 @@ import urllib.error
 import urllib.request
 import wave
 
-TTS_URL = os.environ.get(
-    "VOICEVOX_API_URL", "https://api.ai.sakura.ad.jp/v1/audio/speech"
-)
-TTS_MODEL = os.environ.get("VOICEVOX_MODEL", "zundamon")
-TTS_VOICE = os.environ.get("VOICEVOX_VOICE", "normal")
-TTS_MAX_CHARS = int(os.environ.get("VOICEVOX_MAX_CHARS", "800"))
+def _env(key: str, default: str) -> str:
+    v = os.environ.get(key)
+    return v if v else default
+
+
+TTS_URL = _env("VOICEVOX_API_URL", "https://api.ai.sakura.ad.jp/v1/audio/speech")
+TTS_MODEL = _env("VOICEVOX_MODEL", "zundamon")
+TTS_VOICE = _env("VOICEVOX_VOICE", "normal")
+TTS_MAX_CHARS = int(_env("VOICEVOX_MAX_CHARS", "800"))
 
 
 # ---------- script → text ----------
