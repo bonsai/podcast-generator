@@ -23,7 +23,7 @@ SAKURA_API_KEY=... python -m podcastgen.cli generate --theme idol-playlist
 SAKURA_API_KEY=... python -m podcastgen.cli generate --theme idol-playlist --bgm out/bgm.wav
 
 # 視聴ページ生成 → GitHub Pages 等に置く
-python -m podcastgen.cli site --theme idol-playlist --out ~/repo/design/site
+python -m podcastgen.cli site --theme idol-playlist --out ~/repo/show-builder/site
 ```
 
 ## GitHub Actions で「ブラウザ指示 → mp3 ラジオ視聴」
@@ -45,4 +45,4 @@ python -m podcastgen.cli site --theme idol-playlist --out ~/repo/design/site
 
 ## 設計 root
 
-テーマ・台本・データ・music-json スキーマは **design repo**（`~/repo/design`）がソース・オブ・トゥルース。
+テーマ・台本・データ・music-json スキーマは **design repo**（`~/repo/show-builder`）がソース・オブ・トゥルース。

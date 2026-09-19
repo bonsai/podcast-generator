@@ -30,7 +30,7 @@ jobs:
       - name: Checkout design
         uses: actions/checkout@v4
         with:
-          repository: bonsai/design
+          repository: bonsai/show-builder
           token: ${{ secrets.GH_PAT }}
           path: design
 
