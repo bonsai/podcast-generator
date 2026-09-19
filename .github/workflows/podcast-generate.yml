@@ -1,0 +1,81 @@
+name: podcast-generate
+
+on:
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: "テーマ slug (design/themes/<slug>.json)"
+        required: true
+        default: "idol-playlist"
+      script_override:
+        description: "台本 md の相対パス (省略時は theme の script を使用)"
+        required: false
+        default: ""
+      bgm:
+        description: "BGM wav の設計repo内パス (省略時はBGMなし)"
+        required: false
+        default: ""
+  schedule:
+    - cron: "0 22 * * 6"  # 毎週土曜 22:00 UTC
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout design
+        uses: actions/checkout@v4
+        with:
+          repository: bonsai/design
+          token: ${{ secrets.GH_PAT }}
+          path: design
+
+      - name: Checkout podcast-generator
+        uses: actions/checkout@v4
+        with:
+          repository: bonsai/podcast-generator
+          token: ${{ secrets.GH_PAT }}
+          path: podcast-generator
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Generate radio.mp3
+        env:
+          SAKURA_API_KEY: ${{ secrets.SAKURA_API_KEY }}
+          VOICEVOX_MODEL: ${{ vars.VOICEVOX_MODEL }}
+        run: |
+          cd podcast-generator
+          python -m podcastgen.cli generate \
+            --theme "${{ inputs.theme }}" \
+            ${BGM:+"--bgm"} ${BGM:+"../design/$BGM"}
+
+      - name: Build site
+        run: |
+          cd podcast-generator
+          python -m podcastgen.cli site \
+            --theme "${{ inputs.theme }}" \
+            --out ../site
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio
+          path: podcast-generator/data/audio/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          force_orphan: true
