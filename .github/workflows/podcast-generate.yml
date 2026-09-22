@@ -12,7 +12,11 @@ on:
         required: false
         default: ""
       bgm:
-        description: "BGM wav の設計repo内パス (省略時はBGMなし)"
+        description: "BGM 音源の design repo 内パス (省略時は lofi_bgm.mp3)"
+        required: false
+        default: "data/audio/lofi_bgm.mp3"
+      se:
+        description: "SE 音源の design repo 内パス (省略時はなし)"
         required: false
         default: ""
       speed:
@@ -83,11 +87,15 @@ jobs:
           PYTHONPATH=. python -m podcastgen.cli generate \
             --theme "${{ inputs.theme }}" \
             ${BGM:+"--bgm"} ${BGM:+"../design/$BGM"} \
+            ${SE:+"--se"} ${SE:+"../design/$SE"} \
             ${SPEED:+--speed "$SPEED"} \
             ${PITCH:+--pitch "$PITCH"} \
             ${INTON:+--intonation-scale "$INTON"} \
             ${VOL:+--volume-scale "$VOL"} \
             ${PAUSE:+--pause-sentence "$PAUSE"}
+        env:
+          BGM: ${{ inputs.bgm }}
+          SE: ${{ inputs.se }}
 
       - name: Build site
         env:
